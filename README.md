@@ -10,7 +10,7 @@ This repository contains pk2cmd tool, originally developed by Microchip. It has 
 
 Features
 --------
-- Supports 1540 devices, see [here](https://github.com/jaka-fi/PICkitminus/blob/master/PICkitminus_supported_devices.txt) for list
+- Supports 1588 devices, see [here](https://github.com/jaka-fi/PICkitminus/blob/master/PICkitminus_supported_devices.txt) for list
 - Supports PICkit2 and PICkit3 programmers, including clones and derivatives like PKOB, PICkit3.5 or [PK2M](http://kair.us/projects/pk2m_programmer/index.html)
 - Improved auto detection of parts
 - Optimized programming scripts for MSB1st families to reduce write and verify times
@@ -19,6 +19,16 @@ Features
 - [SPI FLASH device support](http://kair.us/projects/pickitminus/program_spi_flash_devices_with_pickit2_and_pickit3.html)
 - Command line software works on Windows XP, 7, 10, 11, Linux and MacOS
 - Retains all the good features from original Microchip pk2cmd
+
+About the device file
+-----------------
+The device file, PK2DeviceFile.dat contains information of different chips and all the scripts needed to program them. This file was maintained by Microchip until 2012 when the last PICkit3 software was released. The device file 1.62.15 supported 639 devices.
+
+After the official support ended, many people started to modify the device file with the [editor by dougy83](https://sites.google.com/site/pk2devicefileeditor/). The result was many different versions of the device file which supported slightly different devices. Also many incorrectly created/copied devices creeped into the device files that time. I also shared a fork on my web site, to which I had added or corrected some devices which I used in my projects. The last version was 1.63.149 from 13.2.2017, supporting 743 devices.
+
+When Anobium started the PICkitplus project, he made a huge effort to gather all the different device files floating around, and merged those into one file with all devices created so far. He also added many new devices, fixed problems with existing devices, and most importantly, added PIC16 and PIC18 MSB1st families, partly based on work of bequest333. The last openly published PICkitplus device file 2.63.218.15 at [Anobium's Github repo](https://github.com/Anobium/PICKitPlus/releases) from December 2020 has 969 devices. I used this as starting point for PICkitminus.
+
+If you want to support Anobium's efforts and contribution to the device file, consider buying the [PICkitPlus software](https://www.pickitplus.co.uk/).
 
 Notes on Linux
 --------------
@@ -51,12 +61,12 @@ Thanks
 ------
 I haven't developed this software all by myself. The biggest part has of course been Microchip's original work, and all the contributions they had received from PICkit2 users. In addition to that, I have used work from other people. My thanks go to all contributions listed below:
 
-- bequest333 for initially adding support for MSB 1st chips
-- PICkitPlus team for providing updated device file until 2020
-- dougy83 for creating device file editor
-- Miklós Márton for adding PICkit3 support to pk2cmd
-- timijk, scasis and TrevorW for adding support for all PIC32MX
+- bequest333 [for initially adding support for MSB 1st chips](https://www.eevblog.com/forum/microcontrollers/pic16f18857-programming-with-pickit2/)
+- Anobium from [PICkitPlus](https://www.pickitplus.co.uk/) team for [providing updated device file until 2020](https://github.com/Anobium/PICKitPlus/releases)
+- dougy83 for creating [device file editor](https://sites.google.com/site/pk2devicefileeditor/)
+- Miklós Márton for [adding PICkit3 support to pk2cmd](https://github.com/martonmiklos/pk2cmd)
+- timijk, scasis and TrevorW for [adding support for all PIC32MX](https://forum.microchip.com/s/topic/a5C3l000000MOXFEA4/t324373)
 - Adem Gdk for adding some SPI FLASH devices and testing SPI FLASH support
-- Jaren Sanson for tool which adds some PIC24 devices
-- boborjan2 for libusb-1.0 support on linux and other improvements
+- Jaren Sanson for [tool which adds some PIC24 devices](https://jared.geek.nz/2013/08/pickit2-revisited/)
+- boborjan2 for [libusb-1.0 support on linux and other improvements](https://github.com/boborjan2/pk2cmd)
 - All people who have sent me bug reports

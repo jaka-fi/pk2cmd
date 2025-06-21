@@ -347,6 +347,23 @@ bool CPICkitFunctions::PartHasCustomerOTP(void)
         return false;
 }
 
+bool CPICkitFunctions::PartHasAuxFlash(void)
+{
+    if ((DevFile.PartsList[ActivePart].ProgMemPanelBufs & 0xf0) == 144)
+        return true;
+    else
+        return false;
+}
+
+unsigned int CPICkitFunctions::GetAuxFlashAddress(void)
+{
+    if ((DevFile.PartsList[ActivePart].ProgMemPanelBufs & 0xf0) == 144)
+        return 0xFF8000;
+    else
+        return 0;
+}
+
+
 bool CPICkitFunctions::WriteDevice(bool progmem, bool eemem, bool uidmem, bool cfgmem, bool useLowVoltageRowErase)
 {
     bool configInProgramSpace = false;
@@ -450,6 +467,15 @@ bool CPICkitFunctions::WriteDevice(bool progmem, bool eemem, bool uidmem, bool c
         // Find end of used memory
         endOfBuffer = FindLastUsedInBuffer(DeviceBuffers->ProgramMemory,
                                     DevFile.Families[ActiveFamily].BlankValue, endOfBuffer);
+        
+        int firstAuxFlashLocation = (int)DevFile.PartsList[ActivePart].ProgramMem
+            - (int)DevFile.PartsList[ActivePart].BootFlash;
+        /*if (PartHasAuxFlash() && !enableAuxiliaryFlashToolStripMenuItem.Checked)
+        {   // Check if Auxiliary flash not enabled, but buffer contains aux flash data
+            if (endOfBuffer >= firstAuxFlashLocation)
+                endOfBuffer = firstAuxFlashLocation - 1;
+        }*/
+                
         if (wordsPerWrite == (endOfBuffer +1))
         { // very small memory sizes (like HCS parts)
             scriptRunsToUseDownload = 1;
@@ -489,6 +515,7 @@ bool CPICkitFunctions::WriteDevice(bool progmem, bool eemem, bool uidmem, bool c
 			timerStart((_TCHAR*)"Write Flash", endOfBuffer / wordsPerLoop);
             bool wholeChunkIsBlank = true;
             bool previousChunkWasBlank = true;
+            bool auxFlashAddressWritten = false;
 
             do
 			{
@@ -538,7 +565,14 @@ bool CPICkitFunctions::WriteDevice(bool progmem, bool eemem, bool uidmem, bool c
                     { // if prog mem address set script exists for this part
                         if (previousChunkWasBlank)
                         {   // set PC if prevoius chunk was not written
-                            DownloadAddress3((wordsWritten - wordsPerLoop) * DevFile.Families[ActiveFamily].AddressIncrement);
+                            if (auxFlashAddressWritten)
+                            {
+                                DownloadAddress3((wordsWritten - firstAuxFlashLocation + ((int)GetAuxFlashAddress() / 4) - wordsPerLoop) * DevFile.Families[ActiveFamily].AddressIncrement);
+                            }
+                            else
+                            {
+                                DownloadAddress3((wordsWritten - wordsPerLoop) * DevFile.Families[ActiveFamily].AddressIncrement);
+                            }
                             if (DevFile.Families[ActiveFamily].BlankValue == 0xFFFFFF)
                                 RunScript(SCR_PROGMEM_WR_PREP, 1);	// PIC24 (maybe others?) need to use WR_PREP when writing, and ADDRSET when reading
                             else
@@ -557,8 +591,21 @@ bool CPICkitFunctions::WriteDevice(bool progmem, bool eemem, bool uidmem, bool c
 
                     RunScript(SCR_PROGMEM_WR, scriptRunsToUseDownload);
                 }
-
-                if (((wordsWritten % 0x8000) == 0) && (DevFile.PartsList[ActivePart].ProgMemWrPrepScript != 0))
+                if (PartHasAuxFlash()
+                    //&& enableAuxiliaryFlashToolStripMenuItem.Checked == true
+                    && auxFlashAddressWritten == false)
+                {
+                    if (wordsWritten >= firstAuxFlashLocation)
+                    {
+                        wordsWritten = firstAuxFlashLocation;
+                        DownloadAddress3((int)GetAuxFlashAddress() / 2);
+                        RunScript(SCR_PROGMEM_WR_PREP, 1);
+                        auxFlashAddressWritten = true;
+                    }
+                }
+                if (((wordsWritten % 0x8000) == 0) 
+                    && (DevFile.PartsList[ActivePart].ProgMemWrPrepScript != 0)
+                    && (auxFlashAddressWritten == false))
                 { //PIC24 must update TBLPAG
                     DownloadAddress3(0x10000 * (wordsWritten / 0x8000));
                     RunScript(SCR_PROGMEM_WR_PREP, 1);
@@ -1847,8 +1894,6 @@ bool CPICkitFunctions::ReadDevice(char function, bool progmem, bool eemem, bool 
 		{
 			// put config word blank values in program memory array
 
-            //if ((DevFile.PartsList[ActivePart].ProgMemPanelBufs & 0xf0) == 160
-            //    || (DevFile.PartsList[ActivePart].ProgMemPanelBufs & 0xf0) == 176)
             if (NewStyleConfigs())
             {
                 DeviceBuffers->ProgramMemory[configLocation] = DevFile.PartsList[ActivePart].ConfigBlank[0]
@@ -2028,20 +2073,24 @@ bool CPICkitFunctions::ReadDevice(char function, bool progmem, bool eemem, bool 
 				(DevFile.PartsList[ActivePart].ProgMemRdWords * bytesPerWord);
 			int wordsPerLoop = scriptRunsToFillUpload * DevFile.PartsList[ActivePart].ProgMemRdWords;
 			int wordsRead = 0;
-            /*
-            // compute configration information.
-            bool configInProgramSpace = false;
-            int configLocation = (int)DevFile.PartsList[ActivePart].ConfigAddr /
-                DevFile.Families[ActiveFamily].ProgMemHexBytes;
-            int configWords = DevFile.PartsList[ActivePart].ConfigWords;
-            int endOfBuffer = DevFile.PartsList[ActivePart].ProgramMem;
-            if ((configLocation < (int)DevFile.PartsList[ActivePart].ProgramMem) && (configWords > 0))
-            {
-                configInProgramSpace = true;
-            }
-            */
+            
+            int firstAuxFlashLocation = (int)DevFile.PartsList[ActivePart].ProgramMem
+                - (int)DevFile.PartsList[ActivePart].BootFlash;
+
+            /*int endOfBuffer = (int)DevFile.PartsList[ActivePart].ProgramMem;
+
+            if (PartHasAuxFlash() && !enableAuxiliaryFlashToolStripMenuItem.Checked)
+                {   // Don't read Aux flash if not enabled
+                int lastUserProgLocation = (int)DevFile.PartsList[ActivePart].ProgramMem
+                    - (int)DevFile.PartsList[ActivePart].BootFlash
+                    - 1;
+                if (endOfBuffer > lastUserProgLocation)
+                    endOfBuffer = lastUserProgLocation;
+            }*/
+
             bool wholeChunkIsBlank = true;
             bool previousChunkWasBlank = false;
+            bool auxFlashAddressWritten = false;
 
 			if (function == BLANK_CHECK)
 				timerStart((_TCHAR*)"Blank Check", LastVerifyLocation / wordsPerLoop);
@@ -2120,7 +2169,10 @@ bool CPICkitFunctions::ReadDevice(char function, bool progmem, bool eemem, bool 
                             }
                             else
                             {   // set PC if prevoius chunk was not verified
-                                DownloadAddress3(wordsRead * DevFile.Families[ActiveFamily].AddressIncrement);
+                                if (auxFlashAddressWritten)
+                                    DownloadAddress3((wordsRead - firstAuxFlashLocation + ((int)GetAuxFlashAddress() / 4)) * DevFile.Families[ActiveFamily].AddressIncrement);
+                                else
+                                    DownloadAddress3(wordsRead * DevFile.Families[ActiveFamily].AddressIncrement);
                                 RunScript(SCR_PROGMEM_ADDRSET, 1);
                             }
                         }
@@ -2220,6 +2272,17 @@ bool CPICkitFunctions::ReadDevice(char function, bool progmem, bool eemem, bool 
 								    timerStop();
 								    _tcsncpy_s(ReadError.memoryType, "Program", 7);
 								    ReadError.address = --wordsRead * DevFile.Families[ActiveFamily].AddressIncrement;
+
+                                    if (PartHasAuxFlash()
+                                        && (wordsRead >= firstAuxFlashLocation))
+                                    {	// Verify fail is at Auxiliary Flash area
+                                        ReadError.address = (((int)GetAuxFlashAddress()
+                                            / DevFile.Families[ActiveFamily].ProgMemHexBytes)
+                                            + wordsRead
+                                            - firstAuxFlashLocation)
+                                            * DevFile.Families[ActiveFamily].AddressIncrement;
+                                    }
+                                    
 								    ReadError.expected = DeviceBuffers->ProgramMemory[wordsRead];
 								    ReadError.read = memWord;
 								    return false;
@@ -2230,10 +2293,25 @@ bool CPICkitFunctions::ReadDevice(char function, bool progmem, bool eemem, bool 
 					    {
 						    break; // for cases where ProgramMemSize%WordsPerLoop != 0
 					    }
+                        //if (PartHasAuxFlash() && enableAuxiliaryFlashToolStripMenuItem.Checked == true)
+                        if (PartHasAuxFlash())
+                            {
+                            if ((wordsRead >= (DevFile.PartsList[ActivePart].ProgramMem
+                                - DevFile.PartsList[ActivePart].BootFlash))
+                                && (auxFlashAddressWritten == false))
+                            {
+                                DownloadAddress3((int)GetAuxFlashAddress() / 2);
+                                RunScript(SCR_PROGMEM_ADDRSET, 1);
+                                auxFlashAddressWritten = true;
+                                //displayStatusWindow.Text += "Aux... ";
+                                break;
+                            }
+                        }
 					    if (((wordsRead % 0x8000) == 0)
 							    && (DevFile.PartsList[ActivePart].ProgMemAddrSetScript != 0)
 							    && (DevFile.PartsList[ActivePart].ProgMemAddrBytes != 0)
-							    && (DevFile.Families[ActiveFamily].BlankValue > 0xFFFF))
+							    && (DevFile.Families[ActiveFamily].BlankValue > 0xFFFF)
+                                && (auxFlashAddressWritten == false))
 					    { //PIC24 must update TBLPAG
 						    DownloadAddress3(0x10000 * (wordsRead / 0x8000));
 						    RunScript(SCR_PROGMEM_ADDRSET, 1);

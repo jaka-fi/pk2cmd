@@ -49,6 +49,8 @@ class CPICkitFunctions
 		  bool FamilyIsPIC32(void);
 		  bool NewStyleConfigs(void);
 		  bool PartHasCustomerOTP(void);
+		  bool PartHasAuxFlash(void);
+		  unsigned int GetAuxFlashAddress(void);
 		  bool WriteDevice(bool progmem, bool eemem, bool uidmem, bool cfgmem, bool useLowVoltageRowErase);
 		  bool HCS360_361_VppSpecial(void);
 		  void WriteConfigOutsideProgMem();
@@ -125,11 +127,11 @@ class CPICkitFunctions
 		  void WriteVector(int vtop, int vbot);
 		  void DisablePE33(void); // dsP33PE
 		  bool useProgExec33(void); // dsP33PE
+		  unsigned int getEEBlank(void);
 	protected:
 		  void processKeeloqData(unsigned char downloadBuffer[], int wordsWritten);
 		  bool readEEPROM(char function);
 		  int eeprom24BitAddress(int wordsWritten, bool setReadBit);
-		  unsigned int getEEBlank(void);
 		  void timerStart(_TCHAR* operation, int steps);
 		  void timerPrint(void);
 		  void timerStop(void);

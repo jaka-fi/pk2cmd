@@ -1654,6 +1654,7 @@ bool Ccmd_app::priority2Args(int argc, _TCHAR* argv[])
 		{
 			int startAddr = 0;
 			int stopAddr = 0;
+			bool packed = true;
 
 			if (argv[i][2] == 0)
 			{ // no specified type - illegal
@@ -1669,9 +1670,12 @@ bool Ccmd_app::priority2Args(int argc, _TCHAR* argv[])
 			{
 				switch (argv[i][2])
 				{
+					case 'u':
+					case 'U':
+						packed = false;
 					case 'f':
 					case 'F':
-							if (PicFuncs.ReadDevice(READ_MEM, true, true, true, true))
+						if (PicFuncs.ReadDevice(READ_MEM, true, true, true, true))
 							{
 								_tcsncpy_s(tempString, &argv[i][3], _tcslen(argv[i])-3);
 								argv[i] = (char *) "";
@@ -1707,7 +1711,7 @@ bool Ccmd_app::priority2Args(int argc, _TCHAR* argv[])
 								else
 								{ // hex file
 									// printf("ret is %x and fiE is %x\n", ret, PicFuncs.FamilyIsEEPROM());
-									ret = ImportExportFuncs.ExportHexFile(tempString, &PicFuncs);
+									ret = ImportExportFuncs.ExportHexFile(tempString, &PicFuncs, packed);
 								}
 								if (ret)
 								{
@@ -2697,6 +2701,10 @@ bool Ccmd_app::checkHelp1(int argc, _TCHAR* argv[])
 				printf("         by the complete file path and name of the file to be created.\n");
 				printf("         Serial EEPROMs only may read into a binary file.  A binary file\n");
 				printf("         will be created if the filename ends in BIN, ex: myfile.bin\n");
+				printf("     u = Read into unpacked hex file. This command must be immediately\n");
+				printf("         followed by the complete file path and name of the file to be\n");
+				printf("         created. This command is otherwise identical as command f, but\n");
+				printf("         the exported hex file contains all blank data as well.\n");
 				printf("     p = Read program memory and output the result to the screen. This\n");
 				printf("         command must be immediately followed by the hex address range\n");
 				printf("         to be read, which must be in the form of x-y, where x = start\n");
@@ -3066,7 +3074,7 @@ void Ccmd_app::displayHelp(void)
 	printf("E                    Erase Flash Device                       Do Not Erase\n");
 	printf("F<file>              Hex File Selection                       None\n");
 	printf("G<Type><range/path>  Read functions                           None\n");
-	printf("                     Type F: = read into hex file,\n");
+	printf("                     Type F,U: = read into hex file,\n");
 	printf("                             path = full file path,\n");
 	printf("                             range is not used\n");
 	printf("                     Types P,E,I,C: = ouput read of Program,\n");

@@ -280,6 +280,12 @@
 //          threshold. Thanks boborjan2 (again above url)
 // Feature: Support EEPROMS/SPIFLASH 1v8 family
 // Bug Fix: Vdd and Vpp readout with PK3 and PKOB was returning garbage, now fixed
+// 
+// version 1.27.00 - 21 Jun 2025 JAKA
+// Feature: Support writing packed .hex files (omit blank data). Use -gu to export
+//          unpacked .hex files as before
+// Feature: Support PIC24/33 devices with auxiliary flash memory
+
 
 #include "stdafx.h"
 #include "stdio.h"
