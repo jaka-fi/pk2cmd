@@ -7,7 +7,7 @@
 
 #define	VERSION_MAJOR	1
 #define	VERSION_MINOR	27
-#define	VERSION_DOT	0
+#define	VERSION_DOT	1
 
 // #define OLDSTYLE_MSB1ST_SETADDR		// If defined, use the old version of set address scipt for MSB1st families
 									// Has limitation of 128 kB FLASH for PIC18F devices (no bigger devices

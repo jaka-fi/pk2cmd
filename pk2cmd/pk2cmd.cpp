@@ -285,6 +285,10 @@
 // Feature: Support writing packed .hex files (omit blank data). Use -gu to export
 //          unpacked .hex files as before
 // Feature: Support PIC24/33 devices with auxiliary flash memory
+//
+// version 1.27.01 - 23 Jun 2025 tnurse18
+// Bug Fix: Fix PICkit detection issues by correcting a logic error in usbhidioc.cpp
+
 
 
 #include "stdafx.h"
