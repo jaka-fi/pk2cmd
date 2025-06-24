@@ -362,11 +362,12 @@ bool CUsbhidioc::FindTheHID(int unitNumber)
 				//Free the memory used by the detailData structure (no longer needed).
 				free(detailData);
 				}  //if (Result != 0)
-
-				else
-					//SetupDiEnumDeviceInterfaces returned 0, so there are no more devices to check.
-					LastDevice=TRUE;
 			}
+		}
+		else
+		{
+			//SetupDiEnumDeviceInterfaces returned 0, so there are no more devices to check.
+			LastDevice = TRUE;
 		}
 
 		//If we haven't found the device yet, and haven't tried every available device,
