@@ -288,6 +288,10 @@
 //
 // version 1.27.01 - 23 Jun 2025 tnurse18
 // Bug Fix: Fix PICkit detection issues by correcting a logic error in usbhidioc.cpp
+//
+// version 1.27.02 - 9 Nov 2025 JAKA
+// Bug Fix: Fix PIC18F WRTC bit workaround to trigger only on relevant families.
+//          Thanks to NelsonBittencourt for reporting the problem
 
 
 

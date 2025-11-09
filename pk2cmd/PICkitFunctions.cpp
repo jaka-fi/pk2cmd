@@ -1004,9 +1004,12 @@ bool CPICkitFunctions::WriteDevice(bool progmem, bool eemem, bool uidmem, bool c
             // To get around this, we're using a bit of hack.  Detect PIC18F or PIC18F_K_parts,
             // and look for WRTC = 0.  If found, write config words once with CONFIG6 = 0xFFFF
             // then re-write it with the correct value.
-            if (_tcsncmp(DevFile.Families[ActiveFamily].FamilyName, "PIC18F", 9) ||
-                _tcsncmp(DevFile.Families[ActiveFamily].FamilyName, "PIC18F_K_", 9))
-            {
+            // Compare len must include the null, otherwise "PIC18/PIC18F" would cover all PIC18
+            // families
+            if (_tcsncmp(DevFile.Families[ActiveFamily].FamilyName, "PIC18/PIC18F", 13) == 0 ||
+                _tcsncmp(DevFile.Families[ActiveFamily].FamilyName, "PIC18/PIC18F_K_", 16) == 0 ||
+                _tcsncmp(DevFile.Families[ActiveFamily].FamilyName, "PIC18/PIC18F_K90_K80_K22", 25) == 0)
+                {
                 if (DevFile.PartsList[ActivePart].ConfigWords > 5)
                 { // don't blow up if part doesn't have enough config words
                     if ((DeviceBuffers->ConfigWords[5] & ~0x2000) == DeviceBuffers->ConfigWords[5])
