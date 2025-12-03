@@ -292,6 +292,10 @@
 // version 1.27.02 - 9 Nov 2025 JAKA
 // Bug Fix: Fix PIC18F WRTC bit workaround to trigger only on relevant families.
 //          Thanks to NelsonBittencourt for reporting the problem
+//
+// version 1.27.03 - 3 Dec 2025 JAKA
+// Bug Fix: Fix verify for parts which have configs in program memory and blank
+//          values not correctly set in .hex
 
 
 

@@ -1887,6 +1887,44 @@ bool CPICkitFunctions::ReadDevice(char function, bool progmem, bool eemem, bool 
 		return ret;
 	}
 
+    if (function == VERIFY_MEM
+        || function == VERIFY_NOPRG_ENTRY
+        || function == VERIFY_MEM_SHORT)
+    {
+        int configLocation = (int)DevFile.PartsList[ActivePart].ConfigAddr /
+            DevFile.Families[ActiveFamily].ProgMemHexBytes;
+        int configWords = DevFile.PartsList[ActivePart].ConfigWords;
+        if ((configWords > 0) && (configLocation < (int)DevFile.PartsList[ActivePart].ProgramMem))
+        {
+            // mask config word blank values in program memory array, just in case they weren't set in .hex
+            // printf("Masking config word blank values\n\r");
+            if (NewStyleConfigs())
+            {
+                DeviceBuffers->ProgramMemory[configLocation] &= (DevFile.PartsList[ActivePart].ConfigBlank[0]
+                    | (DevFile.Families[ActiveFamily].BlankValue & 0xFFFF0000));
+
+                for (int i = 1; i < configWords; i++)
+                {
+                    DeviceBuffers->ProgramMemory[configLocation + 6 + i * 2] &= (DevFile.PartsList[ActivePart].ConfigBlank[i]
+                        | (DevFile.Families[ActiveFamily].BlankValue & 0xFFFF0000));
+                }
+            }
+            else
+            {
+                for (int i = 0; i < configWords; i++)
+                {
+                    DeviceBuffers->ProgramMemory[configLocation + i] &= (DevFile.PartsList[ActivePart].ConfigBlank[i]
+                        | (DevFile.Families[ActiveFamily].BlankValue & 0xFFFF0000));
+                    if (DevFile.Families[ActiveFamily].BlankValue == 0xFFFF) // PIC18 J-Series
+                    {
+                        DeviceBuffers->ProgramMemory[configLocation + i] |= 0xF000;
+                    }
+                }
+            }
+        }
+    }
+
+
 	if (function == BLANK_CHECK)
 	{
 		ResetBuffers();
