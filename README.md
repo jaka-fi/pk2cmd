@@ -4,7 +4,7 @@ Notice
 ------
 THE CODE IN THIS REPOSITORY IS NOT FREE SOFTWARE; it is distributed under a highly restrictive, non-free license. Do not copy, branch, or fork this repository unless you have agreed to this license.
 
-__To download this software for Windows, Linux or Mac, see 'Releases' on right edge of this github page.__  &rarr;
+__Update 27.9.2026. The device file and downloads of all releases have been removed due to copyright violation claim from PICkitPlus team. I need to remove about 400 devices from the device file which PICkitPlus team have added or fixed. This will take time, but I try to get the cleaned device file and downloads back some day.__
 
 This repository contains pk2cmd tool, originally developed by Microchip. It has been improved in many ways, and besides PICkit2, now supports PICkit3 and PKOB programmers too. Also support for hundreds of devices has been added. For GUI software (Windows only), see my another repository [PICkitminus](https://github.com/jaka-fi/PICkitminus).
 
